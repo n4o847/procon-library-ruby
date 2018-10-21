@@ -2,6 +2,7 @@
 # ./use.rb FOO BAR | clip
 
 libs = {
+  "pqueue" => "./lib/pqueue.rb",
   "sum" => "./lib/sum.rb",
   "unionfind" => "./lib/unionfind.rb",
 }
