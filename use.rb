@@ -3,6 +3,7 @@
 
 libs = {
   "sum" => "./lib/sum.rb",
+  "unionfind" => "./lib/unionfind.rb",
 }
 
 MODULE_NAME = "N4"
