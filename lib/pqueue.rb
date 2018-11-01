@@ -5,17 +5,17 @@ class PQueue
   Less = -1
   Greater = 1
 
-  def initialize(c = PQueue::Less)
-    @h = []
+  def initialize(c = Less)
+    @h = [nil]
     @c = c
   end
 
   def empty?
-    @h.empty?
+    @h.size == 1
   end
 
   def size
-    @h.size
+    @h.size - 1
   end
 
   alias length size
@@ -23,8 +23,8 @@ class PQueue
   def push(v)
     c = @h.size
     @h.push(v)
-    while c > 0
-      p = (c - 1) / 2
+    while c > 1
+      p = c / 2
       break if (@h[p] <=> v) != @c
       @h[c] = @h[p]
       c = p
@@ -36,18 +36,18 @@ class PQueue
   alias << push
 
   def pop
-    return if @h.empty?
-    x = @h[0]
+    return if @h.size == 1
+    x = @h[1]
     v = @h.pop
     n = @h.size
-    p = 0
-    c = 1
+    p = 1
+    c = 2
     while c < n
       c += 1 if c + 1 < n && (@h[c] <=> @h[c + 1]) == @c
       break if (v <=> @h[c]) != @c
       @h[p] = @h[c]
       p = c
-      c = p * 2 + 1
+      c = p * 2
     end
     @h[p] = v
     x
@@ -58,73 +58,81 @@ end
 # END
 
 
-$N = 100000
-$data = $N.times.map { rand($N) }
+if ARGV.include?("test")
 
-$sorted = $data.sort
+  require 'test/unit'
 
+  class TC < Test::Unit::TestCase
 
-require 'test/unit'
+    def test_less
+      n = 100
+      data = n.times.map { rand }
+      que = PQueue.new
+      n.times {|i|
+        que << data[i]
+      }
+      assert_equal data.sort.reverse, n.times.map { que.pop }
+    end
 
-class TC < Test::Unit::TestCase
+    def test_greater
+      n = 100
+      data = n.times.map { rand }
+      que = PQueue.new(PQueue::Greater)
+      n.times {|i|
+        que.push(data[i])
+      }
+      assert_equal data.sort, n.times.map { que.pop }
+    end
 
-  def test_less
-    que = PQueue.new
-    $N.times {|i|
-      que << $data[i]
-    }
-    assert_equal $sorted.reverse, $N.times.map { que.pop }
-  end
-
-  def test_greater
-    que = PQueue.new(PQueue::Greater)
-    $N.times {|i|
-      que.push($data[i])
-    }
-    assert_equal $sorted, $N.times.map { que.pop }
   end
 
 end
 
+if ARGV.include?("bm")
 
-require 'benchmark'
+  $N = 100000
+  $data = $N.times.map { rand($N) }
 
-Benchmark.bm(10) {|x|
+  require 'benchmark'
 
-  x.report("pqueue") {
-    que = PQueue.new
-    $N.times {|i|
-      que.push($data[i])
-    }
-    $N.times {
-      que.pop
-    }
-  }
+  Benchmark.bm(10) {|x|
 
-  x.report("sort once") {
-    que = Array.new
-    $N.times {|i|
-      que.push($data[i])
-    }
-    que.sort
-    $N.times {
-      que.pop
-    }
-  }
-
-  x.report("bsearch") {
-    que = Array.new
-    $N.times {|i|
-      pos = que.bsearch_index{|x| (x <=> $data[i]) == 1 }
-      if pos
-        que.insert(pos, $data[i])
-      else
+    x.report("pqueue") {
+      que = PQueue.new
+      $N.times {|i|
         que.push($data[i])
-      end
+      }
+      $N.times {
+        que.pop
+      }
     }
-    $N.times {
-      que.pop
+
+    x.report("sort once") {
+      que = Array.new
+      $N.times {|i|
+        que.push($data[i])
+      }
+      que.sort
+      $N.times {
+        que.pop
+      }
     }
+
+    x.report("bsearch") {
+      que = Array.new
+      $N.times {|i|
+        pos = que.bsearch_index{|x| (x <=> $data[i]) == 1 }
+        if pos
+          que.insert(pos, $data[i])
+        else
+          que.push($data[i])
+        end
+      }
+      $N.times {
+        que.pop
+      }
+    }
+
   }
 
-}
+end
